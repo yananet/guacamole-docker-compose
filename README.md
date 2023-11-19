@@ -40,7 +40,7 @@ The following part of docker-compose.yml will create the guacd service. guacd is
 The following part of docker-compose.yml will create an instance of PostgreSQL using the 16.1 official docker image based on Alpine linux. All data located in guacamole_pgdata presistent volume.  
 
 #### init
-This is copy of PostgreSQL image, that is runnig for first time database initialization. I moved all init from .sh files into this service. If you will re-run docker-compose it checks for existing of database from db.env file and if database already exist it skipping init (your data will be in safe). It run , init database and exit, you can check this service log for details.   
+This service based on PostgreSQL image too, that is running for first time database initialization. I moved all init from .sh files into this service. If you will re-run docker-compose it checks for existing of database from db.env file and if database already exist it skipping init (your data will be in safe). It run , init database and exit, you can check this service log for details.   
 
 #### guacamole
 The following part of docker-compose.yml will create an instance of guacamole by using the docker image `guacamole` from docker hub. This service is web application of guacamole. In this setup it is configured to connect to the previously created postgres instance using a username and password and the database from db.env file. Port 8080 is published.
