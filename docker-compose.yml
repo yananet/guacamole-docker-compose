@@ -1,0 +1,94 @@
+version: '3'
+
+networks:
+  guacamole_network:
+    driver: bridge
+
+services:
+
+  # postgres
+  postgres:
+    container_name: postgres_guacamole
+    image: postgres:16.1-alpine
+    env_file: 
+    - ./db.env
+    environment:
+      POSTGRES_DB: default_db
+      PGDATA: /var/lib/postgresql/data/guacamole
+    networks:
+      guacamole_network:
+    restart: unless-stopped
+    volumes:
+    - pgdata:/var/lib/postgresql/data
+
+  # database init
+  init:
+    container_name: init_guacamole
+    image: postgres:16.1-alpine
+    depends_on:
+      postgres:
+        condition: service_started
+    env_file: 
+    - ./db.env
+    environment:
+      PGDATA: /var/lib/postgresql/data/guacamole   
+    command: sh -c "export PGPASSWORD=$$POSTGRES_PASSWORD &&    
+                    echo \"Waiting for readyness of postgres container\" &&
+                    sleep 10 &&
+                    if psql -lqt -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER | cut -d \\| -f 1 | grep -qw $$POSTGRES_DB; then echo Init will be skipped because guacamole database already exist; exit; fi &&
+                    apk -q update &&
+                    apk -q add wget unzip &&                    
+                    echo \"Getting database schema from guacamole github master branch\" &&     
+                    wget -q https://codeload.github.com/apache/guacamole-client/zip/refs/heads/master -O /tmp/guacamole.zip &&
+                    unzip -q /tmp/guacamole.zip -d /tmp/ &&
+                    cat /tmp/guacamole-client-master/extensions/guacamole-auth-jdbc/modules/guacamole-auth-jdbc-postgresql/schema/*.sql > /tmp/gminit.sql &&
+                    echo \"Creating database\" &&    
+                    createdb -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER $$POSTGRES_DB &&
+                    dropdb -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER default_db &&
+                    echo \"Initializing database\" &&                
+                    psql -q -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER -d $$POSTGRES_DB < /tmp/gminit.sql &&
+                    echo \"All init is done, web-interface must be available at http://your_docker_host_ip:8080/guacamole/ Login: guacadmin Password: guacadmin\""
+    networks:
+      guacamole_network:
+    restart: no
+    volumes:
+    - pgdata:/var/lib/postgresql/data
+    
+  # guacd
+  guacd:
+    container_name: guacd_guacamole
+    image: guacamole/guacd
+    networks: 
+      guacamole_network:
+    restart: unless-stopped
+    volumes:
+    - guac_record:/record:rw
+    - guac_drive:/drive:rw
+    
+  # guacamole
+  guacamole:
+    container_name: web_guacamole
+    depends_on:
+      postgres:
+        condition: service_started
+      guacd:
+        condition: service_started
+      init:
+        condition: service_completed_successfully
+    env_file: 
+    - ./db.env
+    environment:
+      GUACD_HOSTNAME: guacd  
+    image: guacamole/guacamole
+    links:
+    - guacd
+    networks:
+      guacamole_network:
+    ports:
+    - "8080:8080/tcp"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  guac_record:
+  guac_drive:
