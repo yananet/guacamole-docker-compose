@@ -25,7 +25,7 @@ Web interface of your guacamole server should now be available at `http://ip_of_
 Compose file is based on this repo https://github.com/boschkundendienst/guacamole-docker-compose, but i reworked it for my convenience. May be it will be useful for anybody else or not :).
 Database settings was moved to db.env file. I removed nginx service, because personally i prefer to use nginx-proxy-manager as frontend, it saves me from headaches with ssl certificate updates and is easy to set up.
 
-Some details about services in `docker-compose.yml` file:
+Some details about services in `docker-compose.yml` and `db.env` files:
 
 ### db.env
 File with enviroment variables for database, such as database name, username , host and password. At first run init service will take variables from this file and create this db.
