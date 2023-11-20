@@ -47,7 +47,7 @@ services:
                     dropdb -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER default_db &&
                     echo \"Initializing database\" &&                
                     psql -q -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER -d $$POSTGRES_DB < /tmp/gminit.sql &&
-                    echo \"All init is done, web-interface must be available at http://your_docker_host_ip:8080/guacamole/ Login: guacadmin Password: guacadmin\""
+                    echo \"All init is done, web-interface must be available at http://your_docker_host_ip:8080/guacamole/ use login guacadmin and password guacadmin\""
     networks:
       guacamole_network:
     restart: no
