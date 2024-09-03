@@ -35,18 +35,18 @@ services:
     command: sh -c "export PGPASSWORD=$$POSTGRES_PASSWORD &&    
                     echo \"Waiting for readyness of postgres container\" &&
                     sleep 10 &&
-                    if psql -lqt -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER | cut -d \\| -f 1 | grep -qw $$POSTGRES_DB; then echo Init will be skipped because guacamole database already exist; exit; fi &&
+                    if psql -lqt -h $$POSTGRESQL_HOSTNAME -U $$POSTGRESQL_USER | cut -d \\| -f 1 | grep -qw $$POSTGRES_DB; then echo Init will be skipped because guacamole database already exist; exit; fi &&
                     apk -q update &&
                     apk -q add wget unzip &&                    
                     echo \"Getting database schema from guacamole github master branch\" &&     
-                    wget -q https://codeload.github.com/apache/guacamole-client/zip/refs/heads/master -O /tmp/guacamole.zip &&
+                    wget -q https://github.com/apache/guacamole-client/archive/refs/heads/main.zip -O /tmp/guacamole.zip &&
                     unzip -q /tmp/guacamole.zip -d /tmp/ &&
-                    cat /tmp/guacamole-client-master/extensions/guacamole-auth-jdbc/modules/guacamole-auth-jdbc-postgresql/schema/*.sql > /tmp/gminit.sql &&
+                    cat /tmp/guacamole-client-main/extensions/guacamole-auth-jdbc/modules/guacamole-auth-jdbc-postgresql/schema/*.sql > /tmp/gminit.sql &&
                     echo \"Creating database\" &&    
-                    createdb -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER $$POSTGRES_DB &&
-                    dropdb -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER default_db &&
+                    createdb -h $$POSTGRESQL_HOSTNAME -U $$POSTGRESQL_USER $$POSTGRES_DB &&
+                    dropdb -h $$POSTGRESQL_HOSTNAME -U $$POSTGRESQL_USER default_db &&
                     echo \"Initializing database\" &&                
-                    psql -q -h $$POSTGRES_HOSTNAME -U $$POSTGRES_USER -d $$POSTGRES_DB < /tmp/gminit.sql &&
+                    psql -q -h $$POSTGRESQL_HOSTNAME -U $$POSTGRESQL_USER -d $$POSTGRES_DB < /tmp/gminit.sql &&
                     echo \"All init is done, web-interface must be available at http://your_docker_host_ip:8080/guacamole/ use login guacadmin and password guacadmin\""
     networks:
       guacamole_network:
